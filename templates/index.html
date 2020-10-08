@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Drone Delivery</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 70vh;
+      }
+
+      #control {
+        height: 10vh;
+      }
+
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="control">
+      <button id="draw-polygon">Proceed</button>
+    </div>
+    <div id="map"></div>
+    <!-- <img src="https://a.ayushgoyal.dev/hello.png?id=archit" /> -->
+
+    <!-- <script type="module" src="./euclidean.js"></script> -->
+    <!-- <script src="./app.js"></script> -->
+    <script src="assets/test.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAGNFsvRxrPWxm3at6ub4Ohjr98EqqTMUs&callback=initMap&libraries=&v=weekly"></script>
+  </body>
+</html>
