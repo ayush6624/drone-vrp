@@ -39,8 +39,8 @@ def submit():
     coord = []
     for i in body['coordinates']:
         coord.append([i['lat'], i['lng']])
-    main(coord)
-    return jsonify({"recevied": True})
+    route, totalDistance, totalTime = main(coord)
+    return jsonify({"totalDistance": totalDistance, "time": totalTime, "route": route})
 
 # Account management
 

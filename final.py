@@ -82,7 +82,6 @@ def flight_time(coordinates: list, drone_speed: float):
 
 
 def coordinateMatrix(coordinates: list):
-
     distanceMatrix = []
     distanceMatrix.append(["City", "latitude", "longitude"])
     cityCount = 0
@@ -106,7 +105,7 @@ def main(coordinates):
     matrix = generateDistanceMatrix(coordinates)
     time_matrix = flight_time(coordinates, 5)
     coordMatrix, city = coordinateMatrix(coordinates)
-    ilp_model(city)
+    return ilp_model(city)
 
 
 def openFiles(fileName, matrix):
@@ -158,7 +157,6 @@ def ilp_model(sites):
     position = pd.read_csv('./coordinates.csv', index_col="City")
     flighttime = pd.read_csv('./time.csv', index_col="City")
     distance = pd.read_csv('./distance.csv', index_col="City")
-    print(distance.head(7))
     positions = dict(
         (city, (position.loc[city, 'longitude'], position.loc[city, 'latitude'])) for city in sites)
     distances = dict(((s1, s2), distance.loc[s1, s2])
@@ -231,30 +229,31 @@ def ilp_model(sites):
 
     print('Longest time spent:', totalTime, '(min)')
     print('Total distance:', value(prob.objective), '(km)')
-
-
+    total_distance = value(prob.objective)
+    return tours, total_distance, totalTime
 # main(coordinates)
 # 2-opt algoritm
 
-def cost(cost_mat, route):
-    # shifts route array by 1 in order to look at pairs of cities
-    return cost_mat[np.roll(route, 1), route].sum()
+
+# def cost(cost_mat, route):
+#     # shifts route array by 1 in order to look at pairs of cities
+#     return cost_mat[np.roll(route, 1), route].sum()
 
 
-def two_opt(cost_mat, route):
-    best = route
-    improved = True
-    while improved:
-        improved = False
-        for i in range(1, len(route) - 2):
-            for j in range(i + 1, len(route)):
-                if j - i == 1:
-                    continue  # changes nothing, skip then
-                new_route = route[:]  # Creates a copy of route
-                # this is the 2-optSwap since j >= i we use -1
-                new_route[i:j] = route[j - 1:i - 1:-1]
-                if cost(cost_mat, new_route) < cost(cost_mat, best):
-                    best = new_route
-                    improved = True
-                    route = best
-    return best
+# def two_opt(cost_mat, route):
+#     best = route
+#     improved = True
+#     while improved:
+#         improved = False
+#         for i in range(1, len(route) - 2):
+#             for j in range(i + 1, len(route)):
+#                 if j - i == 1:
+#                     continue  # changes nothing, skip then
+#                 new_route = route[:]  # Creates a copy of route
+#                 # this is the 2-optSwap since j >= i we use -1
+#                 new_route[i:j] = route[j - 1:i - 1:-1]
+#                 if cost(cost_mat, new_route) < cost(cost_mat, best):
+#                     best = new_route
+#                     improved = True
+#                     route = best
+#     return best
