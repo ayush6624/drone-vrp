@@ -1,6 +1,7 @@
 import csv
 import json
 import pandas as pd
+from typing import List, Tuple
 from pulp import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ import sys
 import geopy.distance
 from geopy.distance import geodesic
 import matplotlib.pyplot as plt
+# from tsp import kMeansNodes
 
 
 # cutOffTime = 120
@@ -24,7 +26,7 @@ coordinates = [[28.6312756, 77.2239758], [28.6266846, 77.2397423], [
     28.6226552, 77.2092844], [28.6426552, 77.2792844], [28.6126542, 77.2292834]]
 
 
-def distance_coordinates(coords_1, coords_2):
+def distance_coordinates(coords_1, coords_2) -> float:
     """Find Distance between 2 coordinates
 
     Args:
@@ -37,7 +39,7 @@ def distance_coordinates(coords_1, coords_2):
     return geodesic(coords_1, coords_2).kilometers
 
 
-def euclideanDist(node1: int, node2: int, coordinates: list) -> int:
+def euclideanDist(node1: int, node2: int, coordinates: list) -> float:
     """FInd the euclidean distance between 2 points
 
     Args:
@@ -53,7 +55,7 @@ def euclideanDist(node1: int, node2: int, coordinates: list) -> int:
     return distance_coordinates(coord1, coord2)
 
 
-def generateDistanceMatrix(coordinates: list):
+def generateDistanceMatrix(coordinates: List[float]) -> List[List[float]]:
     """Generate Adjacency Matrix
 
     Args:
@@ -85,7 +87,13 @@ def generateDistanceMatrix(coordinates: list):
     return distanceMatrix
 
 
-def flight_time(coordinates: list, drone_speed: float):
+def flight_time(coordinates: List[float], drone_speed: float) -> None:
+    """Generate the flight time matrix
+
+    Args:
+        coordinates (list): list of coordinates
+        drone_speed (float): speed of drone in kmph
+    """
     distanceMatrix = [['City', 'Depot']]
     alpha = 'a'
     for i in range(len(coordinates) - 1):
@@ -135,7 +143,7 @@ def main(coordinates):
     return ilp_model(city)
 
 
-def openFiles(fileName, matrix):
+def openFiles(fileName, matrix) -> None:
     """Write csv files
 
     Args:
@@ -147,12 +155,15 @@ def openFiles(fileName, matrix):
         writer.writerows(matrix)
 
 
-def nn(distanceMatrix: list, nodes: list):
+def nn(distanceMatrix: list, nodes: list) -> Tuple[List[int], float]:
     """Nearest Neighbour Path
 
     Args:
         distanceMatrix (list): Adjancency Matriz
         nodes (list): Contains node ID
+
+    Returns:
+        Tuple[List[int], float]: NN Path and it's associated cost 
     """
     nnTour = [nodes[0]]
     nnCost = 0.0
@@ -178,7 +189,7 @@ def nn(distanceMatrix: list, nodes: list):
     return nnTour, nnCost
 
 
-def ilp_model(sites):
+def ilp_model(sites) -> None:
     """Kara, I., & Bektas, T. (2006). Integer linear programming formulations of multiple salesman problems
         and its variations. European Journal of Operational Research, 174(3), 1449–1458. 
         doi:10.1016/j.ejor.2005.03.008 
@@ -273,40 +284,3 @@ def ilp_model(sites):
     print('Total distance:', value(prob.objective), '(km)')
     total_distance = value(prob.objective)
     return tours, total_distance, totalTime
-
-
-
-
-
-
-
-
-
-
-
-# main(coordinates)
-# 2-opt algoritm
-
-
-# def cost(cost_mat, route):
-#     # shifts route array by 1 in order to look at pairs of cities
-#     return cost_mat[np.roll(route, 1), route].sum()
-
-
-# def two_opt(cost_mat, route):
-#     best = route
-#     improved = True
-#     while improved:
-#         improved = False
-#         for i in range(1, len(route) - 2):
-#             for j in range(i + 1, len(route)):
-#                 if j - i == 1:
-#                     continue  # changes nothing, skip then
-#                 new_route = route[:]  # Creates a copy of route
-#                 # this is the 2-optSwap since j >= i we use -1
-#                 new_route[i:j] = route[j - 1:i - 1:-1]
-#                 if cost(cost_mat, new_route) < cost(cost_mat, best):
-#                     best = new_route
-#                     improved = True
-#                     route = best
-#     return best
