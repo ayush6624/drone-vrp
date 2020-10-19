@@ -14,27 +14,54 @@ from geopy.distance import geodesic
 import matplotlib.pyplot as plt
 
 
-cutOffTime = 120
-drone_endurance = 25
-drone_cost = 1.0
-# truck_cost = 25.0
-truck_cost = 1.0
+# cutOffTime = 120
+# drone_endurance = 25
+# drone_cost = 1.0
+# # truck_cost = 25.0
+# truck_cost = 1.0
 
 coordinates = [[28.6312756, 77.2239758], [28.6266846, 77.2397423], [
     28.6226552, 77.2092844], [28.6426552, 77.2792844], [28.6126542, 77.2292834]]
 
 
 def distance_coordinates(coords_1, coords_2):
+    """Find Distance between 2 coordinates
+
+    Args:
+        coords_1 (list): coordinate
+        coords_2 (list): coordinate
+
+    Returns:
+        distance (int): Distance between 2 points
+    """
     return geodesic(coords_1, coords_2).kilometers
 
 
 def euclideanDist(node1: int, node2: int, coordinates: list) -> int:
+    """FInd the euclidean distance between 2 points
+
+    Args:
+        node1 (int): cityNode
+        node2 (int): cityNode
+        coordinates (list): Coordinates
+
+    Returns:
+        int: distance
+    """
     coord1 = coordinates[node1]
     coord2 = coordinates[node2]
     return distance_coordinates(coord1, coord2)
 
 
 def generateDistanceMatrix(coordinates: list):
+    """Generate Adjacency Matrix
+
+    Args:
+        coordinates (list): coordinates
+
+    Returns:
+        matrix: 2D lists
+    """
     distanceMatrix = [['City', 'Depot']]
     alpha = 'a'
     for i in range(len(coordinates) - 1):
@@ -109,6 +136,12 @@ def main(coordinates):
 
 
 def openFiles(fileName, matrix):
+    """Write csv files
+
+    Args:
+        fileName (str): Name of the file
+        matrix (list): the 2d array to be written
+    """
     with open(fileName, "w") as f:
         writer = csv.writer(f)
         writer.writerows(matrix)
@@ -165,10 +198,12 @@ def ilp_model(sites):
     K = 2
     prob = LpProblem("vehicle", LpMinimize)
     # indicator variable if site i is connected to site j in the tour
+    # xij as a binary variable equal to 1 if arc (i, j) is in the optimal solution and 0 otherwise
     x = LpVariable.dicts('x', distances, 0, 1, LpBinary)
     # dummy vars to eliminate subtours
+    # ui is the number of nodes visited on that travelerÕs path from the origin up to node i (i.e., the visit number of the ith node)
     u = LpVariable.dicts('u', sites, 0, len(sites)-1, LpInteger)
-    # the objective
+    # the objective (minimize signma c_ij, x_ij)
     cost = lpSum([x[(i, j)]*distances[(i, j)] for (i, j) in distances])
     prob += cost
 
@@ -176,15 +211,19 @@ def ilp_model(sites):
     for k in sites:
         cap = 1 if k != 'Depot' else K
         # inbound connection
+        # we can only enter a node once (Paper pg 2, eq 4), i variable, j contant.
         prob += lpSum([x[(i, k)] for i in sites if (i, k) in x]) == cap
         # outbound connection
+        # we can only exit a node once (Paper pg 2 eq 5)
         prob += lpSum([x[(k, i)] for i in sites if (k, i) in x]) == cap
 
     # subtour elimination
+    # generate all combinations of subtour
     N = len(sites)/K
     for i in sites:
         for j in sites:
             if i != j and (i != 'Depot' and j != 'Depot') and (i, j) in x:
+                # ui is the number of nodes visited on that travelerÕs path from the origin up to node i (i.e., the visit number of the ith node)
                 prob += u[i] - u[j] <= (N)*(1-x[(i, j)]) - 1
 
     prob.solve()
@@ -197,15 +236,18 @@ def ilp_model(sites):
         edges = [e for e in non_zero_edges if e[0] == parent]
         for e in edges:
             non_zero_edges.remove(e)
+        # 2 edges coming out of depot, K=2
         return edges
-    tours = get_next_site('Depot')
-    tours = [[e] for e in tours]
 
+    tours = get_next_site('Depot')  # start from the depot
+    tours = [[e] for e in tours]  # 2 tours because k = 2
+
+    # tour generate for each drone, because they havent been generated yet
     for t in tours:
         while t[-1][1] != 'Depot':
             t.append(get_next_site(t[-1][1])[-1])
 
-    # the optimal path
+    # the optimal path, debug, remove later
     for t in tours:
         print(' -> '.join([a for a, b in t]+['Depot']))
 
@@ -221,16 +263,27 @@ def ilp_model(sites):
     print(totalTime)
 
     # draw the tours
-    colors = [np.random.rand(3) for i in range(len(tours))]
-    for t, c in zip(tours, colors):
-        for a, b in t:
-            p1, p2 = positions[a], positions[b]
-            plt.plot([p1[0], p2[0]], [p1[1], p2[1]], color=c)
+    # colors = [np.random.rand(3) for i in range(len(tours))]
+    # for t, c in zip(tours, colors):
+    #     for a, b in t:
+    #         p1, p2 = positions[a], positions[b]
+    #         plt.plot([p1[0], p2[0]], [p1[1], p2[1]], color=c)
 
     print('Longest time spent:', totalTime, '(min)')
     print('Total distance:', value(prob.objective), '(km)')
     total_distance = value(prob.objective)
     return tours, total_distance, totalTime
+
+
+
+
+
+
+
+
+
+
+
 # main(coordinates)
 # 2-opt algoritm
 
