@@ -55,7 +55,7 @@ def euclideanDist(node1: int, node2: int, coordinates: list) -> float:
     return distance_coordinates(coord1, coord2)
 
 
-def generateDistanceMatrix(coordinates: List[float]) -> List[List[float]]:
+def generateDistanceMatrixFinal(coordinates: List[float]) -> List[List[float]]:
     """Generate Adjacency Matrix
 
     Args:
@@ -197,16 +197,17 @@ def ilp_model(sites, coordinateFile) -> None:
     """
     # a handful of sites
     # sites = ['Depot', 'a', 'b', 'c', 'd']
-
+    print('filename', coordinateFile)
     latlng = ['latitude', 'longitude']
     position = pd.read_csv(coordinateFile, index_col="City")
     flighttime = pd.read_csv('./time.csv', index_col="City")
     distance = pd.read_csv('./distance.csv', index_col="City")
     positions = dict(
         (city, (position.loc[city, 'longitude'], position.loc[city, 'latitude'])) for city in sites)
+    print('===== POSITIONS -> ', positions)
     distances = dict(((s1, s2), distance.loc[s1, s2])
                      for s1 in positions for s2 in positions if s1 != s2)
-
+    print('distances ', distance)
     K = 2
     prob = LpProblem("vehicle", LpMinimize)
     # indicator variable if site i is connected to site j in the tour

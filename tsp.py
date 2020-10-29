@@ -1,4 +1,5 @@
-from final import nn, euclideanDist, ilp_model, flight_time, coordinateMatrix
+from final import nn, euclideanDist, ilp_model, flight_time, coordinateMatrix,generateDistanceMatrixFinal
+from matrix import routeMatrix
 import csv
 import pandas as pd
 import numpy as np
@@ -84,9 +85,11 @@ def kMeansNodes():
     nodes = [x for x in range(3)]  # because there are 3 clusters present
     coordinates = centers.tolist()
     distanceMatrix = generateDistanceMatrix(coordinates)
-    generateDistanceMatrix(coordinates)
-    tour, cost = nn(distanceMatrix, nodes)
-    # TODO change nnCost function later
+    # generateDistanceMatrix(coordinates)
+    print("distanceMatrix -> ", distanceMatrix)
+    truck_route_matrix = routeMatrix(centers)
+    print('coordinates -> ' , truck_route_matrix)
+    tour, cost = nn(truck_route_matrix, nodes)
     return centers, tour, cost
 
 
@@ -98,6 +101,7 @@ def getCities():
         city = df['City'].to_list()
         print(city)
         tours, tour_distance, tour_time = ilp_model(city, fileName)
+        print('----------- ilp done')
         depot = df.iloc[0].to_list()[1:]
         print('tours -> ', tours)
         data.append([tours, tour_distance, tour_time])
@@ -144,7 +148,7 @@ def makeAllSubRoutes(center):
 
 
 def main(coordinates):
-    generateDistanceMatrix(coordinates)
+    generateDistanceMatrixFinal(coordinates)
     flight_time(coordinates, 5)
     coordMatrix, city = coordinateMatrix(coordinates)
     centers, tsp_route, tsp_cost = kMeansNodes()

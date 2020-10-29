@@ -3,12 +3,13 @@
   <head>
     <title>Drone Delivery</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css" />
 
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 70vh;
+        height: 86vh;
       }
 
       #control {
@@ -21,15 +22,20 @@
         height: 100%;
         margin: 0;
         padding: 0;
+        background-color: #1d2c4d;
+        color: white;
       }
     </style>
   </head>
   <body>
-    <div id="control">
-      <button id="draw-polygon">Proceed</button>
-    </div>
+    <header>
+      <h1>Drone Delivery System using TSP and VRP</h1>
+    </header>
     <div id="map"></div>
     <div id="response">
+      <div id="control">
+        <button id="draw-polygon">Proceed</button>
+      </div>
       <h2>VRP Solver:</h2>
     </div>
     <!-- <img src="https://a.ayushgoyal.dev/hello.png?id=archit" /> -->

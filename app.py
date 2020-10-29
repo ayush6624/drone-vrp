@@ -40,8 +40,9 @@ def submit():
     for i in body['coordinates']:
         coord.append([i['lat'], i['lng']])
     route, centers, tsp_route = main(coord)
+    print(coord)
     # os.system('clear')
-    print('route', route)
+    # print('route', route)
     return jsonify({"route": route, "centers": centers.tolist(), "tsp_route":tsp_route})
 
 # Account management
