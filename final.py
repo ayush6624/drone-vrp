@@ -140,6 +140,7 @@ def main(coordinates):
     matrix = generateDistanceMatrix(coordinates)
     time_matrix = flight_time(coordinates, 5)
     coordMatrix, city = coordinateMatrix(coordinates)
+    print(city)
     return ilp_model(city)
 
 
@@ -189,7 +190,7 @@ def nn(distanceMatrix: list, nodes: list) -> Tuple[List[int], float]:
     return nnTour, nnCost
 
 
-def ilp_model(sites) -> None:
+def ilp_model(sites, coordinateFile) -> None:
     """Kara, I., & Bektas, T. (2006). Integer linear programming formulations of multiple salesman problems
         and its variations. European Journal of Operational Research, 174(3), 1449–1458. 
         doi:10.1016/j.ejor.2005.03.008 
@@ -198,7 +199,7 @@ def ilp_model(sites) -> None:
     # sites = ['Depot', 'a', 'b', 'c', 'd']
 
     latlng = ['latitude', 'longitude']
-    position = pd.read_csv('./coordinates.csv', index_col="City")
+    position = pd.read_csv(coordinateFile, index_col="City")
     flighttime = pd.read_csv('./time.csv', index_col="City")
     distance = pd.read_csv('./distance.csv', index_col="City")
     positions = dict(

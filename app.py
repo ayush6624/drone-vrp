@@ -1,4 +1,4 @@
-from final import main
+from tsp import main
 from functools import wraps
 import sys
 from datetime import datetime, timedelta
@@ -39,8 +39,10 @@ def submit():
     coord = []
     for i in body['coordinates']:
         coord.append([i['lat'], i['lng']])
-    route, totalDistance, totalTime = main(coord)
-    return jsonify({"totalDistance": totalDistance, "time": totalTime, "route": route})
+    route, centers, tsp_route = main(coord)
+    # os.system('clear')
+    print('route', route)
+    return jsonify({"route": route, "centers": centers.tolist(), "tsp_route":tsp_route})
 
 # Account management
 

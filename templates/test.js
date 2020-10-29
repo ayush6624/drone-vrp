@@ -1,9 +1,12 @@
 // This example adds an animated symbol to a polyline.
 let coordinates = [];
+let centerCoordinates = [];
 let euclidean = [];
 let map;
 const labels = '@abcdefghijklmnopqrstuvwxyz';
+const localWarehouse = '123456789';
 let labelIndex = 0;
+let centerIndex = 0;
 
 const polyline = (coords, color, map) => {
   let lineSymbol = {
@@ -29,6 +32,15 @@ const polyline = (coords, color, map) => {
 
 let proceed = document.getElementById('draw-polygon');
 
+const insertMarkerForCenters = (pos, map) => {
+  new google.maps.Marker({
+    position: pos,
+    title: 'Local Warehouse',
+    label: localWarehouse[centerIndex++ % localWarehouse.length],
+    map: map,
+  });
+};
+
 proceed.addEventListener('click', async (e) => {
   console.log('proceed');
   // send coordinates to server
@@ -44,31 +56,61 @@ proceed.addEventListener('click', async (e) => {
   document.getElementById('response').appendChild(document.createTextNode(JSON.stringify(re)));
   console.log('server response -> ', re);
 
-  route1 = re.route[0];
-  route2 = re.route[1];
-  r1 = [];
-  r2 = [];
-  route1.forEach((d) => {
-    if (d[0] === 'Depot') d[0] = '@';
-    let tCoordinate = coordinates[labels.indexOf(d[0])];
-    r1.push(tCoordinate);
+  centers = re.centers;
+  truckRoute = [];
+  truckRouteFinal = [];
+  // add marker for centers
+  centers.forEach((d) => {
+    let tempCoords = { lat: d[0], lng: d[1] };
+    truckRoute.push(tempCoords);
+    insertMarkerForCenters(tempCoords, map);
   });
-  r1.push(coordinates[labels.indexOf('@')]);
-  console.log(r1);
 
-  route2.forEach((d) => {
-    if (d[0] === 'Depot') d[0] = '@';
-    let tCoordinate = coordinates[labels.indexOf(d[0])];
-    r2.push(tCoordinate);
+  re.tsp_route.forEach((d) => {
+    truckRouteFinal.push(truckRoute[d]);
   });
-  r2.push(coordinates[labels.indexOf('@')]);
-  console.log(r2);
 
-  line1 = polyline(r1, 'FF0000', map);
-  line2 = polyline(r2, '008080', map);
+  // draw polyline for TSP Truck Route (warehouse -> 1,2,3 -> warehouse) ~! Partially Done
+  truckRoutePolyline = polyline(truckRouteFinal, '#FF00FF', map);
+  animateCircle(truckRoutePolyline);
 
-  animateCircle(line1);
-  animateCircle(line2);
+  for (let i = 0; i < 3; i++) {
+    console.log('Iteration #', i);
+    route1 = re.route[i][0][0];
+    route2 = re.route[i][0][1];
+
+    // r1, r2 are the 2 drones in each cluster
+    r1 = []; // polyline is drawn on r1, r2
+    r2 = [];
+
+    // draw polylines for Drone Routes (local cluster)
+    route1.forEach((d) => {
+      debugger;
+      let tCoordinate;
+      if (d[0] === 'Depot') tCoordinate = truckRoute[i];
+      else tCoordinate = coordinates[labels.indexOf(d[0])];
+      r1.push(tCoordinate);
+    });
+
+    // r1.push(coordinates[labels.indexOf('@')]);
+    r1.push(truckRoute[i]);
+    console.log(r1);
+
+    route2.forEach((d) => {
+      let tCoordinate;
+      if (d[0] === 'Depot') tCoordinate = truckRoute[i];
+      else tCoordinate = coordinates[labels.indexOf(d[0])];
+      r2.push(tCoordinate);
+    });
+    r2.push(truckRoute[i]);
+    console.log(r2);
+
+    line1 = polyline(r1, '#FF0000', map);
+    line2 = polyline(r2, '#008080', map);
+
+    animateCircle(line1);
+    animateCircle(line2);
+  }
 });
 
 const addLatLng = (e, map) => {

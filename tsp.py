@@ -1,4 +1,4 @@
-from final import nn, euclideanDist
+from final import nn, euclideanDist, ilp_model, flight_time, coordinateMatrix
 import csv
 import pandas as pd
 import numpy as np
@@ -7,6 +7,7 @@ from sklearn.cluster import KMeans
 import seaborn as sns
 import sys
 sns.set()
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 def generateDistanceMatrix(coordinates: list):
@@ -48,7 +49,8 @@ def k_means():
     X_axis = df[['longitude']]
     score = [kmeans[i].fit(Y_axis).score(Y_axis) for i in range(len(kmeans))]
 
-    #  print(score) # elbow ka score. Ideal elbow score at k = 3 (graph's monotonicty / elbow curve)
+    # elbow ka score. Ideal elbow score at k = 3 (graph's monotonicty / elbow curve)
+    print('elbow score -> ', score)
     kmeans = KMeans(n_clusters=3, init='k-means++',
                     max_iter=1000)  # max iteration parameter
     # Compute k-means clustering. # Compute k-means clustering.
@@ -72,32 +74,46 @@ def k_means():
 
 
 def kMeansNodes():
-    """It gives us the route of the truck nodes
-
+    """It gives us the TSP Route of the truck nodes
     Returns:
         list: truck nodes
     """
     centers = k_means()
+    # truck rendevouz node for truck in each cluster
     print("Centers  ->", centers)
     nodes = [x for x in range(3)]  # because there are 3 clusters present
     coordinates = centers.tolist()
     distanceMatrix = generateDistanceMatrix(coordinates)
     generateDistanceMatrix(coordinates)
     tour, cost = nn(distanceMatrix, nodes)
-    print("Truck Tour -> ", tour)
-    return tour
+    # TODO change nnCost function later
+    return centers, tour, cost
 
 
-def makeAllSubRoutes():
+def getCities():
+    data = []
+    for i in range(3):
+        fileName = 'test' + str(i) + '.csv'
+        df = pd.read_csv(fileName)
+        city = df['City'].to_list()
+        print(city)
+        tours, tour_distance, tour_time = ilp_model(city, fileName)
+        depot = df.iloc[0].to_list()[1:]
+        print('tours -> ', tours)
+        data.append([tours, tour_distance, tour_time])
+    return data
+
+
+def makeAllSubRoutes(center):
     # initial warehouse is assumed to be far away from the delivery zones. So the truck will travel from the initial warehouse to each zones (clusters)
     # Each path should be in the form - ['Depot', 'a', 'b', 'c', 'd']
-    center = k_means()
+    # center = k_means()
     df = pd.read_csv('coordinates_kmeans.csv')
     df = df.sort_values(by=['cluster_label'])
     # df = df.drop(columns = ['cluster_label'])
     # print(df.head(100))
-    center = [[28.63533523, 77.21035865], [
-        28.63621989, 77.2259356], [28.63078809, 77.24152565]]
+    # center = [[28.63533523, 77.21035865], [
+    # 28.63621989, 77.2259356], [28.63078809, 77.24152565]]
     final = []
     for i in center:
         temp = ["Depot"]
@@ -127,4 +143,14 @@ def makeAllSubRoutes():
     # pass these coordinate matrices to the main() in final.py
 
 
-makeAllSubRoutes()
+def main(coordinates):
+    generateDistanceMatrix(coordinates)
+    flight_time(coordinates, 5)
+    coordMatrix, city = coordinateMatrix(coordinates)
+    centers, tsp_route, tsp_cost = kMeansNodes()
+    print("truck tour -> ", tsp_route, " tsp_cost -> ",
+          tsp_cost, 'centers -> ', centers)
+    makeAllSubRoutes(centers)
+    data = getCities()
+    print('debug -> \n',data)
+    return data, centers, tsp_route
